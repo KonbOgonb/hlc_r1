@@ -4,7 +4,7 @@ from flask import jsonify
 from flask import request
 from data_repository import Data_repository
 
-PATH_TO_DATA = "tmp/data/data.zip"
+PATH_TO_DATA = "../tmp/data/data.zip"
 
 app = Flask(__name__)
 
@@ -40,4 +40,4 @@ def update_user(user_id):
 repository = Data_repository(PATH_TO_DATA)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80)
