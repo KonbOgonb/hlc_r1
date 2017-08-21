@@ -13,7 +13,8 @@ class ModelBase(object):
             self.id = dct["id"]
 
     def to_json(self):
-        return json.dumps(self.__dict__, ensure_ascii=False)
+        fields = {v:self.__dict__[v] for v in self.__dict__ if v != 'visits'}
+        return json.dumps(fields, ensure_ascii=False)
 
 class User(ModelBase):
     def __init__(self, dct):
