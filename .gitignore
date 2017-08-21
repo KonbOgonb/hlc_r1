@@ -100,7 +100,7 @@ ENV/
 # mypy
 .mypy_cache/
 
-/flask
+/app/flask
 /local_temp
 /app/local_temp
 /hlc.sublime-workspace
