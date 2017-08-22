@@ -8,11 +8,11 @@ PATH_TO_DATA = "../tmp/data/data.zip"
 class DataService(object):
     def __init__(self):
         data = read_all_data(PATH_TO_DATA)
-        self.user_repository = UserRepository(data)
+        self.users_repository = UserRepository(data)
         self.locations_repository = LocationsRepository(data)
         self.visits_repository = VisitsRepository(data)
 
-        self.repositories = {"users": self.user_repository,
+        self.repositories = {"users": self.users_repository,
                 "locations" : self.locations_repository,
                 "visits" : self.visits_repository}
 
@@ -20,7 +20,7 @@ class DataService(object):
         self.messageBus.register_handler(("add", "visits"), self.add_visit_handler)
 
     def add_visit_handler(self, visit):
-        user = self.user_repository.get_item(visit.user)
+        user = self.users_repository.get_item(visit.user)
 
         if not user:
             return Error.DATA_ERROR
@@ -65,9 +65,33 @@ class DataService(object):
         repository.update_item(id, data)
 
     def get_user_visits(self, user_id):
-        user = self.user_repository.get_item(user_id)
+        user = self.users_repository.get_item(user_id)
 
         if not user:
             return Error.NOT_FOUND
 
-        return [self.visits_repository.get_item(v) for v in user.visits]
+        result = []
+
+        for visitId in user.visits:
+            visit = self.visits_repository.get_item(visitId)
+            location = self.locations_repository.get_item(visit.location)
+            result.append({"mark":visit.mark, "place":location.place, "visited_at":visit.visited_at})
+
+        return result
+
+    def get_location_average(self, location_id):
+        location = self.locations_repository.get_item(location_id)
+
+        if not location:
+            return Error.NOT_FOUND
+
+        result = []
+
+        for visitId in location.visits:
+            visit = self.visits_repository.get_item(visitId)
+            result.append(visit.mark)
+
+        if len(result) > 0:
+            return sum(result) / len(result)
+
+        return 0

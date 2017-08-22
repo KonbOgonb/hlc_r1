@@ -1,6 +1,5 @@
 from flask import Flask, abort, request
 from dataService import DataService
-from model import ModelEncoder
 from error import Error
 import json
 import sys
@@ -41,7 +40,16 @@ def get_user_visits(item_id):
     if type(result) is Error:
         return handle_error(result)
 
-    return json.dumps({"visits" : result}, cls=ModelEncoder, ensure_ascii=False)
+    return json.dumps({"visits" : result}, ensure_ascii=False), 200
+
+@app.route('/locations/<int:item_id>/avg', methods=['GET'])
+def get_location_average(item_id):
+    result = data_service.get_location_average(item_id)
+    print(result)
+    if type(result) is Error:
+        return handle_error(result)
+
+    return json.dumps({"avg":'{0:.5f}'.format(result)}), 200
 
 def handle_error(error):
     if error == Error.NOT_FOUND:
