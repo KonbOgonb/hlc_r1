@@ -36,7 +36,7 @@ def update_item(entityType, item_id):
 
 @app.route('/users/<int:item_id>/visits', methods=['GET'])
 def get_user_visits(item_id):
-    result = data_service.get_user_visits(item_id)
+    result = data_service.get_user_visits(item_id, request.args)
     if type(result) is Error:
         return handle_error(result)
 
@@ -44,12 +44,11 @@ def get_user_visits(item_id):
 
 @app.route('/locations/<int:item_id>/avg', methods=['GET'])
 def get_location_average(item_id):
-    result = data_service.get_location_average(item_id)
-    print(result)
+    result = data_service.get_location_average(item_id, request.args)
     if type(result) is Error:
         return handle_error(result)
 
-    return json.dumps({"avg":'{0:.5f}'.format(result)}), 200
+    return json.dumps({"avg":round(result,5)}), 200
 
 def handle_error(error):
     if error == Error.NOT_FOUND:

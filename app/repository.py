@@ -7,15 +7,13 @@ class RepositoryBase(object):
 
     def add_item(self, data):
         new_item = self.create_item(data)
-        new_id = max(self.items.keys()) + 1
-        new_item.id = new_id
-        self.items[new_id] = new_item
+        self.items[new_item.id] = new_item
 
         return new_item
 
     def update_item(self, id, data):
         if id not in self.items:
-            return 404
+            raise KeyError()
 
         user = self.items[id]
         user.update(data)
