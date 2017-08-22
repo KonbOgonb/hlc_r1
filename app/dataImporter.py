@@ -32,14 +32,24 @@ def read_all_data(path):
             p = Payload(f.read())
 
             if file_name.startswith(USERS_PREFIX):            
-                all_users += p.users
+                all_users += [User(x) for x in p.users]
 
             if file_name.startswith(LOCATIONS_PREFIX):
-                all_locations += p.locations
+                all_locations += [Location(x) for x in p.locations]
 
             if file_name.startswith(VISITS_PREFIX):
-                all_visits += p.visits
+                all_visits += [Visit(x) for x in p.visits]
 
-    return {"users": [User(x) for x in all_users],
-            "visits": [Visit(x) for x in all_visits],
-            "locations": [Location(x) for x in all_locations]}
+
+    users_dict = {user.id: user for user in all_users}
+    locations_dict = {location.id: location for location in all_locations}
+
+    for visit in all_visits:
+        if visit.user in users_dict:
+            users_dict[visit.user].visits.append(visit.id)
+        if visit.location in locations_dict:
+            locations_dict[visit.location].visits.append(visit.id)
+
+    return {"users": all_users,
+            "visits": all_visits,
+            "locations": all_locations}
