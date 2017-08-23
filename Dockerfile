@@ -6,9 +6,11 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY /app /app
 COPY /tmp /tmp
+COPY ./docker-entrypoint.sh /app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install flask
+RUN pip install gunicorn
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
@@ -17,4 +19,4 @@ EXPOSE 80
 ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "app.py", "docker"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
