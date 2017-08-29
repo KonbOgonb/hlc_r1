@@ -1,47 +1,53 @@
 from model import User, Location, Visit
+import memcache
+
+mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class RepositoryBase(object):
-    def __init__(self, items):
-        items_with_keys = [(item.id, item) for item in items]
-        self.items = {key: item for (key, item) in  items_with_keys}
-
     def add_item(self, data):
-        new_item = self.create_item(data)
-        self.items[new_item.id] = new_item
+        key, item = self.create_item(data)
+        mc.set(key, item)        
 
-        return new_item
+        return item
 
-    def update_item(self, id, data):
-        if id not in self.items:
+    def update_item(self, new_item):
+        key = self.get_key(new_item.id)
+        mc.set(key, new_item)
+
+    def update_item_from_dict(self, id, data):
+        key = self.get_key(id)
+        item = mc.get(key)
+
+        if not item:
             raise KeyError()
 
-        user = self.items[id]
-        user.update(data)
+        item.update(data)
+        mc.set(key, item)
 
     def get_item(self, id):
-        if id in self.items:
-            return self.items[id]
+        key = self.get_key(id)
+        return mc.get(key)
 
 class UserRepository(RepositoryBase):
-    def __init__(self, data):
-        users = data["users"]
-        super(UserRepository, self).__init__(users)
+    def get_key(self, id):
+        return "user" + str(id)
 
     def create_item(self, data):
-        return User(data)
+        user = data if isinstance(data, User) else User(data)
+        return self.get_key(user.id), user
 
-class LocationsRepository(RepositoryBase):
-    def __init__(self, data):
-        users = data["locations"]
-        super(LocationsRepository, self).__init__(users)
-
-    def create_item(self, data):
-        return Location(data)
-
-class VisitsRepository(RepositoryBase):
-    def __init__(self, data):
-        users = data["visits"]
-        super(VisitsRepository, self).__init__(users)
+class LocationRepository(RepositoryBase):
+    def get_key(self, id):
+        return "location" + str(id)
 
     def create_item(self, data):
-        return Visit(data)
+        location = data if isinstance(data, Location) else Location(data)
+        return self.get_key(location.id), location
+
+class VisitRepository(RepositoryBase):
+    def get_key(self, id):
+        return "visit" + str(id)
+
+    def create_item(self, data):
+        visit = data if isinstance(data, Visit) else Visit(data)
+        return self.get_key(visit.id), visit

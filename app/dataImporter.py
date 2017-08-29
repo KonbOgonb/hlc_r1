@@ -1,3 +1,4 @@
+PATH_TO_DATA = "../tmp/data/data.zip"
 USERS_PREFIX = "users"
 VISITS_PREFIX = "visits"
 LOCATIONS_PREFIX = "locations"
@@ -9,13 +10,14 @@ import json
 from os import listdir
 from os.path import isfile, join
 from model import User, Location, Visit
+from repository import UserRepository, VisitRepository, LocationRepository
 
 class Payload(object):
     def __init__(self, j):
         self.__dict__ = json.loads(j)
 
-def read_all_data(path):
-    with ZipFile(path) as inputzip:
+def read_all_data():
+    with ZipFile(PATH_TO_DATA) as inputzip:
         inputzip.extractall(WORKIGN_DIRECTORY)
 
     files = [f for f in listdir(WORKIGN_DIRECTORY) if isfile(join(WORKIGN_DIRECTORY, f))]
@@ -50,6 +52,16 @@ def read_all_data(path):
         if visit.location in locations_dict:
             locations_dict[visit.location].visits.append(visit.id)
 
-    return {"users": all_users,
-            "visits": all_visits,
-            "locations": all_locations}
+    user_repository = UserRepository()
+    for user in all_users:
+        user_repository.add_item(user)
+
+    location_repository = LocationRepository()  
+    for location in all_locations:
+        location_repository.add_item(location)
+
+    visit_repository = VisitRepository()  
+    for visit in all_visits:
+        visit_repository.add_item(visit)
+
+read_all_data()

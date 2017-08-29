@@ -3,6 +3,10 @@ from dataService import DataService
 from error import Error
 import json
 import sys
+import logging
+
+log = logging.getLogger('werkzeug')
+#log.setLevel(logging.ERROR)
 
 app = Flask(__name__)
 
@@ -62,7 +66,7 @@ startupParams = {"host":"127.0.0.1", "port":5000, "debug":True}
 data_service = DataService()
 
 if "docker" in sys.argv:
-    startupParams = {"host":"0.0.0.0", "port":80}
+    startupParams = {}
 
 if __name__ == '__main__':
-    app.run()
+    app.run(**startupParams)

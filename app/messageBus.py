@@ -9,8 +9,6 @@ class MessageBus(object):
             self.handlers[event] = [handler]
 
     def fire_event(self, event, **params):
-        print(event, params)
-
         if event not in self.handlers:
             return
 

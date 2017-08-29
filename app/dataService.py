@@ -1,18 +1,14 @@
-from repository import UserRepository, VisitsRepository, LocationsRepository
-from dataImporter import read_all_data
+from repository import UserRepository, VisitRepository, LocationRepository
 from error import Error
 from messageBus import MessageBus
 from datetime import datetime
 import time
 
-PATH_TO_DATA = "../tmp/data/data.zip"
-
 class DataService(object):
     def __init__(self):
-        data = read_all_data(PATH_TO_DATA)
-        self.users_repository = UserRepository(data)
-        self.locations_repository = LocationsRepository(data)
-        self.visits_repository = VisitsRepository(data)
+        self.users_repository = UserRepository()
+        self.locations_repository = LocationRepository()
+        self.visits_repository = VisitRepository()
 
         self.repositories = {"users": self.users_repository,
                 "locations" : self.locations_repository,
@@ -24,20 +20,14 @@ class DataService(object):
 
     def add_visit_handler(self, visit):
         user = self.users_repository.get_item(visit.user)
-
-        if not user:
-            return Error.DATA_ERROR
-
         if visit.id not in user.visits:
             user.visits.append(visit.id)
-
+            self.users_repository.update_item(user)
         location = self.locations_repository.get_item(visit.location)
-
-        if not location:
-            return Error.DATA_ERROR
 
         if visit.id not in location.visits:
             location.visits.append(visit.id)
+            self.locations_repository.update_item(location)
 
     def update_visit_handler(self, visit_id, data):
         visit = self.visits_repository.get_item(visit_id)
@@ -48,11 +38,15 @@ class DataService(object):
             old_user.visits.remove(visit_id)
             new_user = self.users_repository.get_item(data["user"])
             new_user.visits.append(visit_id)
+            self.users_repository.update_item(old_user)
+            self.users_repository.update_item(new_user)
         if "location" in data:
             old_location = self.locations_repository.get_item(visit.location)
             old_location.visits.remove(visit_id)
             new_location = self.locations_repository.get_item(data["location"])
             new_location.visits.append(visit_id)
+            self.locations_repository.update_item(old_location)
+            self.locations_repository.update_item(new_location)
 
     def get(self, entityType, id):
         if entityType not in self.repositories:
@@ -87,7 +81,7 @@ class DataService(object):
 
         try:
             self.messageBus.fire_event(("update", entityType), visit_id=id, data=data)
-            repository.update_item(id, data)
+            repository.update_item_from_dict(id, data)
         except KeyError:
             return Error.NOT_FOUND
         except:
@@ -120,12 +114,13 @@ class DataService(object):
     def get_location_average(self, location_id, args):
         location = self.locations_repository.get_item(location_id)
 
+        result = []
+
         if not location:
             return Error.NOT_FOUND
         try:
             filters = [self.create_filter(k,v) for (k,v) in args.items()]
 
-            result = []
             for visitId in location.visits:
                 visit = self.visits_repository.get_item(visitId)
                 user = self.users_repository.get_item(visit.user)
