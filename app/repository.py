@@ -1,7 +1,7 @@
 from model import User, Location, Visit
-import memcache
+import pylibmc
 
-mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+mc = pylibmc.Client(["127.0.0.1"], binary=True, behaviors={"tcp_nodelay": True,"ketama": True})
 
 class RepositoryBase(object):
     def add_item(self, data):
