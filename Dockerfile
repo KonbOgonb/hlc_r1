@@ -5,7 +5,6 @@ WORKDIR /app
 
 # Copy the current directory contents into the container at /app
 COPY /app /app
-COPY /tmp /tmp
 COPY ./docker-entrypoint.sh /app
 COPY ./memcached.conf /app
 

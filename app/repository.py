@@ -2,8 +2,7 @@ from model import User, Location, Visit
 import pylibmc
 
 mc = pylibmc.Client(["127.0.0.1"], binary=True,
-    behaviors={"tcp_nodelay": True,
-    "ketama": True})
+    behaviors={"tcp_nodelay": True})
 
 class RepositoryBase(object):
     def add_item(self, data):
@@ -11,6 +10,35 @@ class RepositoryBase(object):
         mc.set(key, item)        
 
         return item
+
+    def add_multi(self, data):
+        items = {}
+        for x in data:
+            k,v = self.create_item(x)
+            items[k] = v
+        mc.set_multi(items)
+
+    def get_multi(self, data):
+        count = 0 
+        items = []
+        result = {}
+        for i in data:
+            count += 1
+            items.append(i)
+            if count == 1000:
+                temp_res = mc.get_multi([self.get_key(x) for x in items])
+                for k,v in temp_res.items():
+                    result[k] = v
+                items = []
+                count = 0
+
+        temp_res = mc.get_multi([self.get_key(x) for x in items])
+        for k,v in temp_res.items():
+            result[k] = v
+        return result
+
+    def update_multi(self, data):
+        mc.set_multi(data)
 
     def update_item(self, new_item):
         key = self.get_key(new_item.id)

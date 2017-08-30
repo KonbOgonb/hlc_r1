@@ -40,11 +40,11 @@ def process_all(path):
 
     print("started loading users", time.time())
 
+
     for file_name in users_files:
         with open(join(path, file_name), encoding='utf-8') as f:
             p = Payload(f.read())
-            for x in p.users:
-                user_repository.add_item(User(x))
+            user_repository.add_multi(p.users)
 
     print("started loading locations", time.time())
 
@@ -53,49 +53,54 @@ def process_all(path):
     for file_name in locations_files:
         with open(join(path, file_name), encoding='utf-8') as f:
             p = Payload(f.read())
-            for x in p.locations:
-                location_repository.add_item(Location(x))
+            location_repository.add_multi(p.locations)
 
     print("started loading visits", time.time())
 
-    count = 0
-
-    users_to_update = {}
-    locations_to_update = {}
-
     for file_name in visits_files:
         with open(join(path, file_name), encoding='utf-8') as f:
+            print(file_name)
             p = Payload(f.read())
-            for x in p.visits:
-                if count < 10000:
-                    visit = Visit(x)
-                    visit_repository.add_item(visit)
-                    if visit.user in users_to_update:
-                        users_to_update[visit.user].append(visit.id)
-                    else:
-                        users_to_update[visit.user] = [visit.id]
-                    if visit.location in locations_to_update:
-                        locations_to_update[visit.location].append(visit.id)
-                    else:
-                        locations_to_update[visit.location] = [visit.id]
-                    count += 1
-                else:
-                    count = 0
-                    for k,v in users_to_update.items():
-                        user = user_repository.get_item(k)
-                        if not user.visits:
-                            user.visits = v
-                        else:
-                            user.visits += v
-                        user_repository.update_item(user)
-                    for k,v in locations_to_update.items():
-                        location = location_repository.get_item(k)
-                        if not location.visits:
-                            location.visits = v
-                        else:
-                            location.visits += v
-                        location_repository.update_item(location)
+            visit_repository.add_multi(p.visits)
 
+            users_to_update = {}
+            locations_to_update = {}
+            for x in p.visits:
+                visit = Visit(x)
+                if visit.user in users_to_update:
+                    users_to_update[visit.user].append(visit.id)
+                else:
+                    users_to_update[visit.user] = [visit.id]
+                if visit.location in locations_to_update:
+                    locations_to_update[visit.location].append(visit.id)
+                else:
+                    locations_to_update[visit.location] = [visit.id]
+            print("flushing")
+
+            users = user_repository.get_multi(users_to_update.keys())
+            print("gout users")
+
+            locations = location_repository.get_multi(locations_to_update.keys())
+            print("gout locations")
+
+            for k,v in users_to_update.items():
+                user = users[user_repository.get_key(k)]
+                if not user.visits:
+                    user.visits = v
+                else:
+                    user.visits += v
+            for k,v in locations_to_update.items():
+                location = locations[location_repository.get_key(k)]
+                if not location.visits:
+                    location.visits = v
+                else:
+                    location.visits += v
+
+            print("updated dicts")
+            location_repository.update_multi(locations)
+            print("updated locations")
+            user_repository.update_multi(users)
+            print("updated users")
 
     print("finished loading visits", time.time())
 
