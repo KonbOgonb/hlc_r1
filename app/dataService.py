@@ -1,7 +1,6 @@
 from repository import UserRepository, VisitRepository, LocationRepository
 from error import Error
 from messageBus import MessageBus
-from datetime import datetime
 import time
 
 class DataService(object):

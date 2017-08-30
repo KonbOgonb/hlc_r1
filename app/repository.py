@@ -1,32 +1,33 @@
 from model import User, Location, Visit
 import pylibmc
 
-mc = pylibmc.Client(["127.0.0.1"], binary=True, behaviors={"tcp_nodelay": True,"ketama": True})
+mc_write = pylibmc.Client(["127.0.0.1"], binary=True, behaviors={"tcp_nodelay": True})
+mc_read = pylibmc.Client(["udp:127.0.0.1"], binary=True, behaviors={"tcp_nodelay": True})
 
 class RepositoryBase(object):
     def add_item(self, data):
         key, item = self.create_item(data)
-        mc.set(key, item)        
+        mc_write.set(key, item)        
 
         return item
 
     def update_item(self, new_item):
         key = self.get_key(new_item.id)
-        mc.set(key, new_item)
+        mc_write.set(key, new_item)
 
     def update_item_from_dict(self, id, data):
         key = self.get_key(id)
-        item = mc.get(key)
+        item = mc_write.get(key)
 
         if not item:
             raise KeyError()
 
         item.update(data)
-        mc.set(key, item)
+        mc_write.set(key, item)
 
     def get_item(self, id):
         key = self.get_key(id)
-        return mc.get(key)
+        return mc_read.get(key)
 
 class UserRepository(RepositoryBase):
     def get_key(self, id):
