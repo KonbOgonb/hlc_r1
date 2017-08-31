@@ -62,7 +62,7 @@ def handle_error(error):
 
     return abort(500)
 
-startupParams = {"host":"127.0.0.1", "port":5004, "debug":True}
+startupParams = {"host":"127.0.0.1", "port":5000, "debug":True}
 data_service = DataService()
 
 if "docker" in sys.argv:

@@ -26,15 +26,10 @@ class RepositoryBase(object):
             count += 1
             items.append(i)
             if count == 1000:
-                temp_res = mc.get_multi([self.get_key(x) for x in items])
-                for k,v in temp_res.items():
-                    result[k] = v
-                items = []
+                esult.update(mc.get_multi([self.get_key(x) for x in items]))
                 count = 0
 
-        temp_res = mc.get_multi([self.get_key(x) for x in items])
-        for k,v in temp_res.items():
-            result[k] = v
+        result.update(mc.get_multi([self.get_key(x) for x in items]))
         return result
 
     def update_multi(self, data):

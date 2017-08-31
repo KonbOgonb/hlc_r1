@@ -40,7 +40,6 @@ def process_all(path):
 
     print("started loading users", time.time())
 
-
     for file_name in users_files:
         with open(join(path, file_name), encoding='utf-8') as f:
             p = Payload(f.read())
@@ -75,13 +74,9 @@ def process_all(path):
                     locations_to_update[visit.location].append(visit.id)
                 else:
                     locations_to_update[visit.location] = [visit.id]
-            print("flushing")
 
             users = user_repository.get_multi(users_to_update.keys())
-            print("gout users")
-
             locations = location_repository.get_multi(locations_to_update.keys())
-            print("gout locations")
 
             for k,v in users_to_update.items():
                 user = users[user_repository.get_key(k)]
@@ -96,12 +91,9 @@ def process_all(path):
                 else:
                     location.visits += v
 
-            print("updated dicts")
             location_repository.update_multi(locations)
-            print("updated locations")
             user_repository.update_multi(users)
-            print("updated users")
 
-    print("finished loading visits", time.time())
+    print("finished loading data", time.time())
 
 read_all_data()
