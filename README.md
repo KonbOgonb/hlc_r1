@@ -1,4 +1,5 @@
 # hlc_r1
 
 This was an attempt to create solution for the first round of highloadcup (https://highloadcup.ru/).
-Flask, gunicorn, memcached, pylibmc, docker were used.
+
+RESTfull service implemented with Flask, gunicorn, memcached, pylibmc, docker.
